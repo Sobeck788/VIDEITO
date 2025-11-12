@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VideITO - Cambiar Contraseña</title>
+    <link rel="stylesheet" href="Stilos.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="logo-section">
+                <a href="/" class="logo">VideITO</a>
+                <div class="search-bar">
+                    <!-- Espacio reservado -->
+                </div>
+            </div>
+            
+            <div class="location-user-section">
+                <div class="user-location" id="locationDisplay">
+                    Tu ubicación: <span id="currentLocation">Oaxaca de Juárez, Oaxaca</span>
+                </div>
+                
+                <div class="user-menu">
+                    <button class="user-button" id="userMenuButton">
+                        <div class="user-authenticated">
+                            <div class="user-avatar"></div>
+                            <span id="userName">Usuario Ejemplo</span>
+                        </div>
+                    </button>
+                    <div class="dropdown-menu" id="dropdownMenu">
+                        <a href="/perfil" class="dropdown-item">Mi Perfil</a>
+                        <a href="/historial" class="dropdown-item">Historial</a>
+                        <div class="dropdown-divider"></div>
+                        <button class="dropdown-item" onclick="cerrarSesion()">Salir</button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="profile-container">
+            <h1 class="page-title">Cambiar Contraseña</h1>
+            
+            <div class="password-form">
+                <div class="form-group">
+                    <label for="currentPassword">Contraseña actual</label>
+                    <input type="password" id="currentPassword" placeholder="Ingresa tu contraseña actual">
+                    <div class="password-strength"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="newPassword">Nueva contraseña</label>
+                    <input type="password" id="newPassword" placeholder="Crea una nueva contraseña" oninput="verificarFortaleza()">
+                    <div class="password-strength" id="passwordStrength"></div>
+                    <div class="password-requirements">
+                        <span id="lengthReq">❌ Mínimo 8 caracteres</span>
+                        <span id="numberReq">❌ Incluir un número</span>
+                        <span id="specialReq">❌ Incluir un carácter especial</span>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="confirmPassword">Confirmar nueva contraseña</label>
+                    <input type="password" id="confirmPassword" placeholder="Repite la nueva contraseña" oninput="verificarCoincidencia()">
+                    <div class="password-match" id="passwordMatch"></div>
+                </div>
+
+                <div class="security-tips">
+                    <h4>💡 Consejos de seguridad:</h4>
+                    <ul>
+                        <li>Usa una combinación de letras, números y símbolos</li>
+                        <li>No uses información personal fácil de adivinar</li>
+                        <li>Considera usar una frase de contraseña única</li>
+                    </ul>
+                </div>
+                
+                <div class="action-buttons">
+                    <a href="/perfil" class="cancel-btn">Cancelar</a>
+                    <button class="save-btn" id="saveButton" onclick="cambiarPassword()" disabled>Guardar Cambios</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Cargar datos al iniciar
+        document.addEventListener('DOMContentLoaded', function() {
+            cargarDatosUsuario();
+        });
+
+        function cargarDatosUsuario() {
+            const usuario = {
+                nombre: 'Usuario Ejemplo',
+                ubicacion: 'Oaxaca de Juárez, Oaxaca'
+            };
+            document.getElementById('userName').textContent = usuario.nombre;
+            document.getElementById('currentLocation').textContent = usuario.ubicacion;
+        }
+
+        function verificarFortaleza() {
+            const password = document.getElementById('newPassword').value;
+            const strengthBar = document.getElementById('passwordStrength');
+            const lengthReq = document.getElementById('lengthReq');
+            const numberReq = document.getElementById('numberReq');
+            const specialReq = document.getElementById('specialReq');
+            const saveButton = document.getElementById('saveButton');
+
+            // Verificar requisitos
+            const hasLength = password.length >= 8;
+            const hasNumber = /\d/.test(password);
+            const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+
+            // Actualizar indicadores visuales
+            lengthReq.innerHTML = hasLength ? '✓ Mínimo 8 caracteres' : '❌ Mínimo 8 caracteres';
+            lengthReq.style.color = hasLength ? '#4ecdc4' : '#ff6b6b';
+            
+            numberReq.innerHTML = hasNumber ? '✓ Incluir un número' : '❌ Incluir un número';
+            numberReq.style.color = hasNumber ? '#4ecdc4' : '#ff6b6b';
+            
+            specialReq.innerHTML = hasSpecial ? '✓ Incluir un carácter especial' : '❌ Incluir un carácter especial';
+            specialReq.style.color = hasSpecial ? '#4ecdc4' : '#ff6b6b';
+
+            // Calcular fortaleza
+            let strength = 0;
+            if (hasLength) strength++;
+            if (hasNumber) strength++;
+            if (hasSpecial) strength++;
+
+            // Actualizar barra de fortaleza
+            strengthBar.innerHTML = '';
+            strengthBar.className = 'password-strength';
+            
+            if (strength === 0) {
+                strengthBar.innerHTML = 'Muy débil';
+                strengthBar.style.background = '#ff6b6b';
+                strengthBar.style.width = '25%';
+            } else if (strength === 1) {
+                strengthBar.innerHTML = 'Débil';
+                strengthBar.style.background = '#ffa726';
+                strengthBar.style.width = '50%';
+            } else if (strength === 2) {
+                strengthBar.innerHTML = 'Buena';
+                strengthBar.style.background = '#42a5f5';
+                strengthBar.style.width = '75%';
+            } else if (strength === 3) {
+                strengthBar.innerHTML = 'Fuerte';
+                strengthBar.style.background = '#4ecdc4';
+                strengthBar.style.width = '100%';
+            }
+
+            verificarHabilitarBoton();
+        }
+
+        function verificarCoincidencia() {
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const matchIndicator = document.getElementById('passwordMatch');
+
+            if (confirmPassword === '') {
+                matchIndicator.innerHTML = '';
+                matchIndicator.style.background = 'transparent';
+            } else if (newPassword === confirmPassword) {
+                matchIndicator.innerHTML = '✓ Las contraseñas coinciden';
+                matchIndicator.style.background = '#4ecdc4';
+                matchIndicator.style.color = 'white';
+            } else {
+                matchIndicator.innerHTML = '❌ Las contraseñas no coinciden';
+                matchIndicator.style.background = '#ff6b6b';
+                matchIndicator.style.color = 'white';
+            }
+
+            verificarHabilitarBoton();
+        }
+
+        function verificarHabilitarBoton() {
+            const currentPassword = document.getElementById('currentPassword').value;
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const saveButton = document.getElementById('saveButton');
+
+            const hasLength = newPassword.length >= 8;
+            const hasNumber = /\d/.test(newPassword);
+            const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(newPassword);
+            const passwordsMatch = newPassword === confirmPassword;
+
+            const isFormValid = currentPassword && 
+                               newPassword && 
+                               confirmPassword && 
+                               hasLength && 
+                               hasNumber && 
+                               hasSpecial && 
+                               passwordsMatch;
+
+            saveButton.disabled = !isFormValid;
+        }
+
+        function cambiarPassword() {
+            const currentPassword = document.getElementById('currentPassword').value;
+            const newPassword = document.getElementById('newPassword').value;
+            
+            // Simular verificación con el backend
+            setTimeout(() => {
+                // En una aplicación real, aquí harías una petición al backend
+                alert('Contraseña cambiada exitosamente');
+                window.location.href = '/perfil';
+            }, 1500);
+        }
+
+        // Menú de usuario
+        const userMenuButton = document.getElementById('userMenuButton');
+        const dropdownMenu = document.getElementById('dropdownMenu');
+
+        userMenuButton.addEventListener('click', function() {
+            dropdownMenu.classList.toggle('show');
+        });
+
+        window.addEventListener('click', function(e) {
+            if (!e.target.matches('.user-button') && !e.target.closest('.user-button')) {
+                if (dropdownMenu.classList.contains('show')) {
+                    dropdownMenu.classList.remove('show');
+                }
+            }
+        });
+
+        function cerrarSesion() {
+            if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
+                alert('Sesión cerrada - Redirigiendo al inicio');
+                window.location.href = '/';
+            }
+            dropdownMenu.classList.remove('show');
+        }
+    </script>
+
+    <style>
+        .password-strength {
+            height: 5px;
+            border-radius: 3px;
+            margin-top: 5px;
+            transition: all 0.3s ease;
+            text-align: center;
+            font-size: 12px;
+            padding: 2px;
+            color: white;
+        }
+
+        .password-requirements {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            margin-top: 10px;
+            font-size: 12px;
+        }
+
+        .password-requirements span {
+            transition: color 0.3s ease;
+        }
+
+        .password-match {
+            height: 5px;
+            border-radius: 3px;
+            margin-top: 5px;
+            transition: all 0.3s ease;
+            text-align: center;
+            font-size: 12px;
+            padding: 2px;
+        }
+
+        .security-tips {
+            background: #1a1a1a;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #4ecdc4;
+        }
+
+        .security-tips h4 {
+            margin-bottom: 10px;
+            color: #4ecdc4;
+        }
+
+        .security-tips ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .security-tips li {
+            margin-bottom: 5px;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .security-tips li:before {
+            content: "•";
+            color: #4ecdc4;
+            position: absolute;
+            left: 0;
+        }
+
+        #saveButton:disabled {
+            background: #666;
+            cursor: not-allowed;
+        }
+
+        #saveButton:disabled:hover {
+            background: #666;
+        }
+    </style>
+</body>
+</html>

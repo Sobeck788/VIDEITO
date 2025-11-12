@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VideITO - Historial</title>
+    <link rel="stylesheet" href="Stilos.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="logo-section">
+                <a href="/" class="logo">VideITO</a>
+                <div class="search-bar">
+                    <!-- Espacio reservado -->
+                </div>
+            </div>
+            
+            <div class="location-user-section">
+                <div class="user-location" id="locationDisplay">
+                    Tu ubicación: <span id="currentLocation">Oaxaca de Juárez, Oaxaca</span>
+                </div>
+                
+                <div class="user-menu">
+                    <button class="user-button" id="userMenuButton">
+                        <div class="user-authenticated">
+                            <div class="user-avatar"></div>
+                            <span id="userName">Usuario Ejemplo</span>
+                        </div>
+                    </button>
+                    <div class="dropdown-menu" id="dropdownMenu">
+                        <a href="/perfil" class="dropdown-item">Mi Perfil</a>
+                        <a href="/historial" class="dropdown-item">Historial</a>
+                        <div class="dropdown-divider"></div>
+                        <button class="dropdown-item" onclick="cerrarSesion()">Salir</button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="historial-container">
+            <h1 class="page-title">Historial</h1>
+            
+            <div class="historial-actions">
+                <button class="action-btn" onclick="limpiarHistorial()" style="background: #ff4444;">Limpiar Historial</button>
+                <button class="action-btn" onclick="exportarHistorial()">Exportar Historial</button>
+            </div>
+            
+            <h2 class="section-title">Búsquedas recientes</h2>
+            <div id="searchHistory">
+                <div class="loading">Cargando búsquedas...</div>
+            </div>
+            
+            <div class="divider"></div>
+            
+            <h2 class="section-title">Vistos Recientemente</h2>
+            <div id="videoHistory">
+                <div class="loading">Cargando historial de videos...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Cargar historial al iniciar
+        document.addEventListener('DOMContentLoaded', function() {
+            cargarDatosUsuario();
+            cargarHistorial();
+        });
+
+        function cargarDatosUsuario() {
+            // Simular datos del usuario
+            const usuario = {
+                nombre: 'Usuario Ejemplo',
+                ubicacion: 'Oaxaca de Juárez, Oaxaca'
+            };
+            document.getElementById('userName').textContent = usuario.nombre;
+            document.getElementById('currentLocation').textContent = usuario.ubicacion;
+        }
+
+        async function cargarHistorial() {
+            try {
+                const response = await fetch('/api/history');
+                const data = await response.json();
+                
+                mostrarHistorialBusquedas(data.searches);
+                mostrarHistorialVideos(data.videos);
+            } catch (error) {
+                console.error('Error cargando historial:', error);
+                // Mostrar datos de ejemplo si hay error
+                mostrarHistorialBusquedas(['Dios nunca muere', 'Oaxaca música', 'Guelaguetza']);
+                mostrarHistorialVideos([
+                    {
+                        id: '1',
+                        title: 'The Phantom of the Opera Directo desde el Macedonio Alcalá',
+                        channel: 'The Shows Must Go On!',
+                        watchedAt: new Date().toISOString(),
+                        thumbnail: 'https://img.youtube.com/vi/ejemplo1/mqdefault.jpg'
+                    },
+                    {
+                        id: '2',
+                        title: 'BBIHF (Live in Oaxaca)',
+                        channel: 'BBIHF',
+                        watchedAt: new Date().toISOString(),
+                        thumbnail: 'https://img.youtube.com/vi/ejemplo2/mqdefault.jpg'
+                    },
+                    {
+                        id: '3',
+                        title: 'DIOS NUNCA MUERE HIMNO DE LOS OAXAQUENOS "YI NABAN"',
+                        channel: 'Reyes Escamilla',
+                        watchedAt: new Date().toISOString(),
+                        thumbnail: 'https://img.youtube.com/vi/ejemplo3/mqdefault.jpg'
+                    }
+                ]);
+            }
+        }
+
+        function mostrarHistorialBusquedas(busquedas) {
+            const searchHistory = document.getElementById('searchHistory');
+            
+            if (busquedas.length === 0) {
+                searchHistory.innerHTML = '<div class="no-data">No hay búsquedas recientes</div>';
+                return;
+            }
+
+            searchHistory.innerHTML = busquedas.map(busqueda => `
+                <div class="search-item" onclick="realizarBusqueda('${busqueda}')">
+                    🔍 ${busqueda}
+                </div>
+            `).join('');
+        }
+
+        function mostrarHistorialVideos(videos) {
+            const videoHistory = document.getElementById('videoHistory');
+            
+            if (videos.length === 0) {
+                videoHistory.innerHTML = '<div class="no-data">No hay videos vistos recientemente</div>';
+                return;
+            }
+
+            videoHistory.innerHTML = videos.map(video => `
+                <div class="video-item" onclick="abrirVideo('${video.id}')">
+                    <div class="video-thumbnail" style="background-image: url('${video.thumbnail || 'https://via.placeholder.com/160x90?text=Video'}')"></div>
+                    <div class="video-info">
+                        <div class="video-title">${video.title}</div>
+                        <div class="video-channel">${video.channel}</div>
+                        <div class="video-stats">Visto el ${formatearFecha(video.watchedAt)}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function formatearFecha(fecha) {
+            return new Date(fecha).toLocaleDateString('es-MX', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function realizarBusqueda(termino) {
+            // Redirigir al inicio con la búsqueda
+            window.location.href = `/?search=${encodeURIComponent(termino)}`;
+        }
+
+        function abrirVideo(videoId) {
+            if (videoId.startsWith('http')) {
+                window.open(videoId, '_blank');
+            } else {
+                window.open(`https://www.youtube.com/watch?v=${videoId}`, '_blank');
+            }
+        }
+
+        function limpiarHistorial() {
+            if (confirm('¿Estás seguro de que quieres limpiar todo tu historial? Esta acción no se puede deshacer.')) {
+                // Aquí se llamaría al backend para limpiar el historial
+                document.getElementById('searchHistory').innerHTML = '<div class="no-data">No hay búsquedas recientes</div>';
+                document.getElementById('videoHistory').innerHTML = '<div class="no-data">No hay videos vistos recientemente</div>';
+                alert('Historial limpiado correctamente');
+            }
+        }
+
+        function exportarHistorial() {
+            alert('Funcionalidad de exportación en desarrollo');
+        }
+
+        // Menú de usuario
+        const userMenuButton = document.getElementById('userMenuButton');
+        const dropdownMenu = document.getElementById('dropdownMenu');
+
+        userMenuButton.addEventListener('click', function() {
+            dropdownMenu.classList.toggle('show');
+        });
+
+        window.addEventListener('click', function(e) {
+            if (!e.target.matches('.user-button') && !e.target.closest('.user-button')) {
+                if (dropdownMenu.classList.contains('show')) {
+                    dropdownMenu.classList.remove('show');
+                }
+            }
+        });
+
+        function cerrarSesion() {
+            if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
+                alert('Sesión cerrada - Redirigiendo al inicio');
+                window.location.href = '/';
+            }
+            dropdownMenu.classList.remove('show');
+        }
+    </script>
+
+    <style>
+        .historial-actions {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+            font-style: italic;
+        }
+
+        .search-item {
+            background: #1a1a1a;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: background 0.2s;
+            border-left: 4px solid #ff6b6b;
+        }
+
+        .search-item:hover {
+            background: #222;
+            transform: translateX(5px);
+        }
+    </style>
+</body>
+</html>

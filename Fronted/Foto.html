@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VideITO - Cambiar Foto</title>
+    <link rel="stylesheet" href="Stilos.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="logo-section">
+                <a href="/" class="logo">VideITO</a>
+                <div class="search-bar">
+                    <!-- Espacio reservado -->
+                </div>
+            </div>
+            
+            <div class="location-user-section">
+                <div class="user-location" id="locationDisplay">
+                    Tu ubicación: <span id="currentLocation">Oaxaca de Juárez, Oaxaca</span>
+                </div>
+                
+                <div class="user-menu">
+                    <button class="user-button" id="userMenuButton">
+                        <div class="user-authenticated">
+                            <div class="user-avatar" id="currentUserAvatar"></div>
+                            <span id="userName">Usuario Ejemplo</span>
+                        </div>
+                    </button>
+                    <div class="dropdown-menu" id="dropdownMenu">
+                        <a href="/perfil" class="dropdown-item">Mi Perfil</a>
+                        <a href="/historial" class="dropdown-item">Historial</a>
+                        <div class="dropdown-divider"></div>
+                        <button class="dropdown-item" onclick="cerrarSesion()">Salir</button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="profile-container">
+            <h1 class="page-title">Cambiar Foto de Perfil</h1>
+            
+            <div class="photo-upload-container">
+                <div class="current-photo">
+                    <div class="photo-preview" id="photoPreview"></div>
+                    <p>Foto actual</p>
+                </div>
+                
+                <div class="upload-options">
+                    <div class="upload-option">
+                        <button class="upload-btn" onclick="tomarFoto()">
+                            📷 Tomar fotografía
+                        </button>
+                    </div>
+                    
+                    <div class="upload-option">
+                        <button class="upload-btn" onclick="seleccionarDeGaleria()">
+                            🖼️ Seleccionar de Galería
+                        </button>
+                    </div>
+                    
+                    <div class="upload-option">
+                        <button class="upload-btn" onclick="subirArchivo()">
+                            📁 Subir Archivo
+                        </button>
+                        <input type="file" id="fileInput" accept="image/*" style="display: none;" onchange="procesarArchivo(this.files)">
+                    </div>
+
+                    <div class="upload-option">
+                        <button class="upload-btn" onclick="usarFotoPredeterminada()">
+                            👤 Usar avatar predeterminado
+                        </button>
+                    </div>
+                </div>
+
+                <div class="preview-section" id="previewSection" style="display: none;">
+                    <h3>Vista previa:</h3>
+                    <div class="photo-preview new-preview" id="newPhotoPreview"></div>
+                </div>
+                
+                <div class="action-buttons">
+                    <a href="/perfil" class="cancel-btn">Cancelar</a>
+                    <button class="save-btn" id="saveButton" onclick="guardarFoto()" disabled>Guardar Cambios</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let nuevaFotoData = null;
+
+        // Cargar datos al iniciar
+        document.addEventListener('DOMContentLoaded', function() {
+            cargarDatosUsuario();
+            cargarFotoActual();
+        });
+
+        function cargarDatosUsuario() {
+            const usuario = {
+                nombre: 'Usuario Ejemplo',
+                ubicacion: 'Oaxaca de Juárez, Oaxaca'
+            };
+            document.getElementById('userName').textContent = usuario.nombre;
+            document.getElementById('currentLocation').textContent = usuario.ubicacion;
+        }
+
+        function cargarFotoActual() {
+            // Simular foto actual (en una app real vendría del backend)
+            const photoPreview = document.getElementById('photoPreview');
+            const userAvatar = document.getElementById('currentUserAvatar');
+            
+            // Usar un avatar por defecto
+            photoPreview.style.background = 'linear-gradient(135deg, #ff6b6b, #ffa726)';
+            photoPreview.innerHTML = '<span style="color: white; font-size: 2em;">👤</span>';
+            
+            userAvatar.style.background = 'linear-gradient(135deg, #ff6b6b, #ffa726)';
+        }
+
+        function tomarFoto() {
+            alert('Funcionalidad de cámara en desarrollo. Por ahora usa "Subir Archivo".');
+        }
+
+        function seleccionarDeGaleria() {
+            document.getElementById('fileInput').click();
+        }
+
+        function subirArchivo() {
+            document.getElementById('fileInput').click();
+        }
+
+        function procesarArchivo(files) {
+            if (files.length > 0) {
+                const file = files[0];
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    nuevaFotoData = e.target.result;
+                    mostrarVistaPrevia(nuevaFotoData);
+                    habilitarGuardado();
+                };
+                
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function usarFotoPredeterminada() {
+            nuevaFotoData = null;
+            const preview = document.getElementById('newPhotoPreview');
+            preview.style.background = 'linear-gradient(135deg, #4ecdc4, #44a08d)';
+            preview.innerHTML = '<span style="color: white; font-size: 2em;">😊</span>';
+            
+            document.getElementById('previewSection').style.display = 'block';
+            habilitarGuardado();
+        }
+
+        function mostrarVistaPrevia(imageData) {
+            const preview = document.getElementById('newPhotoPreview');
+            preview.style.backgroundImage = `url(${imageData})`;
+            preview.style.backgroundSize = 'cover';
+            preview.style.backgroundPosition = 'center';
+            preview.innerHTML = '';
+            
+            document.getElementById('previewSection').style.display = 'block';
+        }
+
+        function habilitarGuardado() {
+            document.getElementById('saveButton').disabled = false;
+        }
+
+        function guardarFoto() {
+            // Simular guardado en el backend
+            setTimeout(() => {
+                if (nuevaFotoData) {
+                    const userAvatar = document.getElementById('currentUserAvatar');
+                    userAvatar.style.backgroundImage = `url(${nuevaFotoData})`;
+                    userAvatar.style.backgroundSize = 'cover';
+                    userAvatar.style.backgroundPosition = 'center';
+                }
+                
+                alert('Foto de perfil actualizada exitosamente');
+                window.location.href = '/perfil';
+            }, 1000);
+        }
+
+        // Menú de usuario
+        const userMenuButton = document.getElementById('userMenuButton');
+        const dropdownMenu = document.getElementById('dropdownMenu');
+
+        userMenuButton.addEventListener('click', function() {
+            dropdownMenu.classList.toggle('show');
+        });
+
+        window.addEventListener('click', function(e) {
+            if (!e.target.matches('.user-button') && !e.target.closest('.user-button')) {
+                if (dropdownMenu.classList.contains('show')) {
+                    dropdownMenu.classList.remove('show');
+                }
+            }
+        });
+
+        function cerrarSesion() {
+            if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
+                alert('Sesión cerrada - Redirigiendo al inicio');
+                window.location.href = '/';
+            }
+            dropdownMenu.classList.remove('show');
+        }
+    </script>
+
+    <style>
+        .new-preview {
+            border: 3px solid #4ecdc4;
+        }
+
+        .preview-section {
+            margin: 20px 0;
+            padding: 20px;
+            background: #1a1a1a;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .preview-section h3 {
+            margin-bottom: 15px;
+            color: #4ecdc4;
+        }
+
+        #saveButton:disabled {
+            background: #666;
+            cursor: not-allowed;
+        }
+
+        #saveButton:disabled:hover {
+            background: #666;
+        }
+    </style>
+</body>
+</html>
