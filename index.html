@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VideITO - Inicio</title>
+    <link rel="stylesheet" href="Stilos.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="logo-section">
+                <a href="/" class="logo">VideITO</a>
+                <div class="search-bar">
+                    <input type="text" id="searchInput" placeholder="Buscar videos...">
+                    <button class="search-button" onclick="buscarVideos()">Buscar</button>
+                </div>
+            </div>
+            
+            <div class="location-user-section">
+                <div class="user-location" id="locationDisplay">
+                    Tu ubicación: <span id="currentLocation">Oaxaca</span>
+                    <button onclick="cambiarUbicacion()" class="location-change-btn">Cambiar</button>
+                </div>
+                
+                <div class="user-menu">
+                    <button class="user-button" id="userMenuButton">
+                        <div class="user-authenticated">
+                            <div class="user-avatar"></div>
+                            <span id="userName">Usuario</span>
+                        </div>
+                    </button>
+                    <div class="dropdown-menu" id="dropdownMenu">
+                        <a href="/perfil" class="dropdown-item">Mi Perfil</a>
+                        <a href="/historial" class="dropdown-item">Historial</a>
+                        <div class="dropdown-divider"></div>
+                        <button class="dropdown-item" onclick="cerrarSesion()">Salir</button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <section class="filters">
+            <div class="sort-filter">
+                <select id="sortSelect" onchange="cambiarOrden()">
+                    <option value="relevance">Ordenar por: Relevancia</option>
+                    <option value="date">Fecha</option>
+                    <option value="viewCount">Vistas</option>
+                </select>
+            </div>
+            <div class="location-info" id="locationInfo">
+                Cargando videos para tu ubicación...
+            </div>
+        </section>
+
+        <section class="video-list" id="videoList">
+            <div class="loading">Cargando videos...</div>
+        </section>
+    </div>
+
+    <script>
+        let currentLocation = 'Oaxaca';
+        let currentSearch = '';
+
+        // Cargar videos al iniciar
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🎬 VideITO iniciado');
+            
+            // Obtener parámetros de URL para búsqueda
+            const urlParams = new URLSearchParams(window.location.search);
+            const searchParam = urlParams.get('search');
+            
+            if (searchParam) {
+                document.getElementById('searchInput').value = searchParam;
+                currentSearch = searchParam;
+            }
+            
+            cargarVideos(currentSearch);
+            
+            // Configurar búsqueda con Enter
+            document.getElementById('searchInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    buscarVideos();
+                }
+            });
+        });
+
+        async function cargarVideos(searchQuery = '') {
+            try {
+                showLoading();
+                
+                const response = await fetch(`/api/videos?location=${currentLocation}&search=${encodeURIComponent(searchQuery)}`);
+                const data = await response.json();
+
+                if (data.success) {
+                    mostrarVideos(data.videos);
+                    document.getElementById('locationInfo').textContent = 
+                        `Mostrando ${data.videos.length} videos para ${currentLocation}${searchQuery ? ` - "${searchQuery}"` : ''}`;
+                } else {
+                    throw new Error(data.error);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showError('Error al cargar videos. Intenta nuevamente.');
+            }
+        }
+
+        function mostrarVideos(videos) {
+            const videoList = document.getElementById('videoList');
+            
+            if (videos.length === 0) {
+                videoList.innerHTML = '<div class="error">No se encontraron videos para esta ubicación.</div>';
+                return;
+            }
+
+            videoList.innerHTML = videos.map(video => `
+                <div class="video-item">
+                    <div class="video-thumbnail" style="background-image: url('${video.thumbnail}')" onclick="reproducirVideo('${video.id}')">
+                        <div class="play-overlay">▶</div>
+                    </div>
+                    <div class="video-info">
+                        <div class="video-title">
+                            ${video.liveBroadcastContent === 'live' ? '<span class="live-badge">LIVE</span>' : ''}
+                            ${video.title}
+                        </div>
+                        <div class="video-channel">${video.channelTitle}</div>
+                        <div class="video-stats">
+                            ${formatearFecha(video.publishedAt)}
+                        </div>
+                        ${video.description ? `<div class="video-description">${video.description.substring(0, 120)}...</div>` : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // 🎯 SOLO ESTA FUNCIÓN - Redirige a Reproduccion.html
+        function reproducirVideo(videoId) {
+            console.log('🔴 REDIRIGIENDO a página de reproducción...');
+            const url = `/reproduccion?v=${videoId}&location=${currentLocation}&search=${currentSearch}`;
+            window.location.href = url;
+        }
+
+        function formatearFecha(fecha) {
+            const date = new Date(fecha);
+            const ahora = new Date();
+            const diffMs = ahora - date;
+            const diffDias = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+            if (diffDias === 0) return 'Hoy';
+            if (diffDias === 1) return 'Ayer';
+            if (diffDias < 7) return `Hace ${diffDias} días`;
+            if (diffDias < 30) return `Hace ${Math.floor(diffDias / 7)} semanas`;
+            return date.toLocaleDateString('es-MX', { year: 'numeric', month: 'short', day: 'numeric' });
+        }
+
+        function buscarVideos() {
+            const searchInput = document.getElementById('searchInput');
+            currentSearch = searchInput.value.trim();
+            
+            if (currentSearch) {
+                const newUrl = `${window.location.pathname}?search=${encodeURIComponent(currentSearch)}`;
+                window.history.pushState({}, '', newUrl);
+            } else {
+                window.history.pushState({}, '', window.location.pathname);
+            }
+            
+            cargarVideos(currentSearch);
+        }
+
+        function cambiarUbicacion() {
+            const nuevaUbicacion = prompt('Ingresa tu nueva ubicación (ciudad, estado o país):', currentLocation);
+            if (nuevaUbicacion && nuevaUbicacion.trim() !== '') {
+                currentLocation = nuevaUbicacion.trim();
+                document.getElementById('currentLocation').textContent = currentLocation;
+                cargarVideos(currentSearch);
+            }
+        }
+
+        function cambiarOrden() {
+            alert('Funcionalidad de ordenamiento en desarrollo');
+        }
+
+        function showLoading() {
+            const videoList = document.getElementById('videoList');
+            if (videoList) {
+                videoList.innerHTML = '<div class="loading">Buscando videos...</div>';
+            }
+        }
+
+        function showError(message) {
+            const videoList = document.getElementById('videoList');
+            if (videoList) {
+                videoList.innerHTML = `<div class="error">${message}</div>`;
+            }
+        }
+
+        // Menú de usuario
+        const userMenuButton = document.getElementById('userMenuButton');
+        const dropdownMenu = document.getElementById('dropdownMenu');
+
+        if (userMenuButton && dropdownMenu) {
+            userMenuButton.addEventListener('click', function() {
+                dropdownMenu.classList.toggle('show');
+            });
+
+            window.addEventListener('click', function(e) {
+                if (!e.target.matches('.user-button') && !e.target.closest('.user-button')) {
+                    if (dropdownMenu.classList.contains('show')) {
+                        dropdownMenu.classList.remove('show');
+                    }
+                }
+            });
+        }
+
+        function cerrarSesion() {
+            if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
+                alert('Sesión cerrada');
+                window.location.href = '/';
+            }
+            if (dropdownMenu) {
+                dropdownMenu.classList.remove('show');
+            }
+        }
+    </script>
+</body>
+</html>
