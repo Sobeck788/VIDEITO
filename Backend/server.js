@@ -21,7 +21,7 @@ app.use('/api', apiRoutes);
 
 // Rutas para las páginas HTML - CORREGIDAS
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, '../Fronted/Index.html'));
+    res.sendFile(path.join(__dirname, '../Fronted/index.html'));
 });
 
 app.get('/reproduccion', (req, res) => {
