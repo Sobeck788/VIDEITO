@@ -16,32 +16,32 @@ console.log('📁 Sirviendo archivos desde:', frontedPath);
 app.use(express.static(frontedPath));
 
 // Importar rutas
-const apiRoutes = require('./api');
+const apiRoutes = require('api');
 app.use('/api', apiRoutes);
 
 // Rutas para las páginas HTML - CORREGIDAS
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, '../index.html'));
+    res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 app.get('/reproduccion', (req, res) => {
-    res.sendFile(path.join(__dirname, '../Reproduccion.html'));
+    res.sendFile(path.join(__dirname, 'Reproduccion.html'));
 });
 
 app.get('/perfil', (req, res) => {
-    res.sendFile(path.join(__dirname, '../Perfil.html'));
+    res.sendFile(path.join(__dirname, 'Perfil.html'));
 });
 
 app.get('/historial', (req, res) => {
-    res.sendFile(path.join(__dirname, '../Historial.html'));
+    res.sendFile(path.join(__dirname, 'Historial.html'));
 });
 
 app.get('/foto', (req, res) => {
-    res.sendFile(path.join(__dirname, '../Foto.html'));
+    res.sendFile(path.join(__dirname, 'Foto.html'));
 });
 
 app.get('/contrasena', (req, res) => {
-    res.sendFile(path.join(__dirname, '../Contraseña.html'));
+    res.sendFile(path.join(__dirname, 'Contraseña.html'));
 });
 
 // Ruta de prueba
