@@ -16,7 +16,7 @@ router.get('/videos', async (req, res) => {
         const { location = 'Oaxaca', search = '', maxResults = 10 } = req.query;
         console.log(`🔍 Solicitando videos: ubicación=${location}, búsqueda=${search}`);
         
-        const youtubeController = require('../controllers/youtubeController');
+        const youtubeController = require('../youtubeController');
         const videos = await youtubeController.searchVideos(location, search, parseInt(maxResults));
 
         res.json({
@@ -48,7 +48,7 @@ router.get('/video-info', async (req, res) => {
         }
 
         // Buscar información del video
-        const youtubeController = require('../controllers/youtubeController');
+        const youtubeController = require('../youtubeController');
         const videos = await youtubeController.searchVideos('global', '', 1);
         const video = videos[0] || {};
 
