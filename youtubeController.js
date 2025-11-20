@@ -150,7 +150,7 @@ class YouTubeController {
             });
         }
 
-        return baseVideos.slice(0, maxResults);
+        return baseVideos.slice(0, 40);
     }
 }
 
