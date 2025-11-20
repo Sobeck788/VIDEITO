@@ -48,7 +48,7 @@ router.get('/video-info', async (req, res) => {
         }
 
         // Buscar información del video
-        const youtubeController = require('../youtubeController');
+        const youtubeController = require('youtubeController');
         const videos = await youtubeController.searchVideos('global', '', 1);
         const video = videos[0] || {};
 
